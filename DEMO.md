@@ -1,60 +1,67 @@
 # Spec-to-Sell demo recording
 
-Target length: 2 minutes 30 seconds. Record at desktop width with browser zoom at 100% and microphone narration on.
+Target length: 2 minutes 40 seconds. Record at desktop width with browser zoom at 100% and narration on.
 
-## 0:00-0:20 - The problem and promise
+## 0:00–0:20 — Problem and promise
 
-Show the home screen and say:
+Show the studio and say:
 
-"PoD sellers receive vendor photos and raw specs, then have to create a coherent listing gallery without overstating the product. Spec-to-Sell turns that supplier material into a trusted, brand-consistent listing set."
+“PoD sellers receive raw vendor photos and scattered specs, then need to create a polished listing gallery without inventing product details. Spec-to-Sell combines AI art direction with a proof trail for every claim.”
 
-Point to the source-locked evidence banner.
+Point to the four-step proof rail and the artboard’s visual-mode badge.
 
-## 0:20-0:45 - Guided brand setup
+## 0:20–0:45 — Brand direction
 
-Show the Brand step. Change the shop name and accent color, then approve the brand kit.
-
-Say:
-
-"The seller sets a compact brand system once. It keeps typography, color, spacing, and image treatment consistent across every slide."
-
-## 0:45-1:20 - Supplier evidence and live analysis
-
-Show the Supplier evidence step. Use a short supplier-specification example and one or more vendor photos. Click Analyze source evidence.
+Open Brand. Change the shop name, description, and accent colour, then save it.
 
 Say:
 
-"GPT-5.6 Terra reads only the pasted supplier information and vendor photos. It returns short claims with exact citations. It does not generate or alter the product image."
+“The seller gives the product a point of view once. The brand brief guides the art direction, while exact brand typography is applied consistently by the app.”
 
-If live analysis is unavailable during recording, load the demo tote and say that the included sample lets judges exercise the same workflow without a key.
+## 0:45–1:18 — Supplier evidence
 
-## 1:20-1:55 - Evidence review
-
-Show supported citations, then show a held claim. Paste an exact supplier sentence into the held-claim field and approve it.
+Open Evidence. Show supplier specifications and vendor images. Click Analyze evidence.
 
 Say:
 
-"Unsupported claims stay out of the listing plan. A seller can only approve one by adding the exact supplier evidence that supports it."
+“GPT-5.6 Terra reads only the supplier material. It returns concise product facts with citations and never lets an unsupported claim into the listing story.”
 
-Click Plan source-backed slides.
+If the key is unavailable, use the packaged tote and state that judges can still explore the complete source-review and source-only export flow.
 
-## 1:55-2:20 - Adaptive listing set and export
+## 1:18–1:42 — Claim review
 
-Show the listing set, switch slides, and point to the rationale. Export the current PNG or ZIP.
+Show a supported citation and a held claim. Add an exact supplier sentence to the held claim and approve it. Re-plan the story.
 
 Say:
 
-"The storyboard chooses between two and six slides based on supported evidence. The final files are deterministic 2000 by 2000 PNGs using only the vendor's supplied product imagery."
+“The proof layer is independent from image generation. No proof means no product claim in the final listing.”
 
-## 2:20-2:30 - Close
+## 1:42–2:16 — GPT Image 2 art direction
 
-Return to the preview and say:
+Select the first artboard and click Generate AI visual.
 
-"Spec-to-Sell makes product listings faster to create and safer to trust."
+Say:
+
+“GPT Image 2 receives the vendor photos as high-fidelity product references and creates an editorial ecommerce composition. The slide is labelled AI-composed, and the model is not asked to render text. Spec-to-Sell applies exact, cited copy afterward.”
+
+Show the before/after visual-mode badge, then switch slides to show that source-photo mode remains available.
+
+## 2:16–2:35 — Export
+
+Open Export, point to the planned frames and the current visual mode, then export a PNG or ZIP.
+
+Say:
+
+“Every file is a 2000 by 2000 PNG. The visual can be source-only or AI-composed from vendor references, but the product claims remain source-cited in either case.”
+
+## 2:35–2:40 — Close
+
+“Spec-to-Sell makes a premium listing story faster to create and easier to trust.”
 
 ## Upload checklist
 
 - Upload a public YouTube video shorter than three minutes.
-- Use narration that explains both Codex and GPT-5.6 Terra.
-- Do not use copyrighted music or third-party trademarks without permission.
-- Add the video URL to the Devpost entry after it is published.
+- Explain both GPT-5.6 Terra’s evidence role and GPT Image 2’s art-direction role.
+- Make the AI-composed visual badge and an evidence citation visible in the recording.
+- Do not use copyrighted music or unlicensed third-party trademarks.
+- Add the video URL to the Devpost entry after publication.
