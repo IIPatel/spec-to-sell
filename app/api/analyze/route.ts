@@ -1,57 +1,175 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { buildStoryboard } from "@/lib/storyboard";
+import { validateAnalysisInput } from "@/lib/analysis-validation";
 import { proposeBrandKit } from "@/lib/brand";
+import { evidenceValidationMessage } from "@/lib/evidence";
+import { buildStoryboard } from "@/lib/storyboard";
 
 export const runtime = "nodejs";
 
+class InputError extends Error {}
+
 const factSchema = z.object({
-  id: z.string(),
-  claim: z.string(),
+  id: z.string().min(1),
+  claim: z.string().min(1),
   category: z.enum(["material", "dimensions", "care", "variant", "customization", "use", "construction"]),
   importance: z.enum(["major", "minor"]),
   status: z.enum(["supported", "needs_review"]),
   confidence: z.number().min(0).max(1),
-  evidence: z.array(z.object({ sourceType: z.enum(["supplier_text", "vendor_image"]), quote: z.string(), imageIndex: z.number().int().optional() })),
+  evidence: z.array(z.object({
+    sourceType: z.enum(["supplier_text", "vendor_image"]),
+    quote: z.string().min(1),
+    imageIndex: z.number().int().nonnegative().optional(),
+  })),
   conflict: z.string().optional(),
+}).superRefine((fact, context) => {
+  if (fact.status === "supported" && !fact.evidence.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Supported claims require evidence." });
+  }
+  if (fact.status === "needs_review" && !fact.conflict?.trim()) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Held claims require a review explanation." });
+  }
 });
 
-const responseSchema = z.object({ facts: z.array(factSchema), explanation: z.string() });
+const responseSchema = z.object({
+  facts: z.array(factSchema).max(24),
+  explanation: z.string().min(1).max(500),
+});
 
 const jsonSchema = {
   type: "object",
   additionalProperties: false,
   required: ["facts", "explanation"],
   properties: {
-    facts: { type: "array", items: { type: "object", additionalProperties: false, required: ["id", "claim", "category", "importance", "status", "confidence", "evidence"], properties: { id: { type: "string" }, claim: { type: "string" }, category: { type: "string", enum: ["material", "dimensions", "care", "variant", "customization", "use", "construction"] }, importance: { type: "string", enum: ["major", "minor"] }, status: { type: "string", enum: ["supported", "needs_review"] }, confidence: { type: "number" }, evidence: { type: "array", items: { type: "object", additionalProperties: false, required: ["sourceType", "quote"], properties: { sourceType: { type: "string", enum: ["supplier_text", "vendor_image"] }, quote: { type: "string" }, imageIndex: { type: "number" } } } }, conflict: { type: "string" } } } },
+    facts: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "claim", "category", "importance", "status", "confidence", "evidence"],
+        properties: {
+          id: { type: "string" },
+          claim: { type: "string" },
+          category: { type: "string", enum: ["material", "dimensions", "care", "variant", "customization", "use", "construction"] },
+          importance: { type: "string", enum: ["major", "minor"] },
+          status: { type: "string", enum: ["supported", "needs_review"] },
+          confidence: { type: "number" },
+          evidence: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["sourceType", "quote"],
+              properties: {
+                sourceType: { type: "string", enum: ["supplier_text", "vendor_image"] },
+                quote: { type: "string" },
+                imageIndex: { type: "number" },
+              },
+            },
+          },
+          conflict: { type: "string" },
+        },
+      },
+    },
     explanation: { type: "string" },
   },
 };
 
+function formString(form: FormData, field: string) {
+  const value = form.get(field);
+  return typeof value === "string" ? value.trim() : "";
+}
+
 export async function POST(request: Request) {
-  if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: "OPENAI_API_KEY is not configured. Use the built-in sample flow or add a server-side key." }, { status: 503 });
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json(
+      { error: "Live analysis is not configured. Explore the complete sample workflow or ask the project owner to add a server-side API key." },
+      { status: 503 },
+    );
+  }
+
   try {
     const form = await request.formData();
-    const name = String(form.get("brandName") ?? "Your shop");
-    const description = String(form.get("brandDescription") ?? "");
-    const preferredColor = String(form.get("preferredColor") ?? "") || undefined;
-    const specifications = String(form.get("specifications") ?? "").trim();
-    if (!specifications) return NextResponse.json({ error: "Supplier specifications are required." }, { status: 400 });
-    const files = form.getAll("photos").filter((value): value is File => value instanceof File).slice(0, 8);
-    const imageContent = await Promise.all(files.map(async (file) => ({ type: "input_image", image_url: `data:${file.type};base64,${Buffer.from(await file.arrayBuffer()).toString("base64")}` })));
+    const brandName = formString(form, "brandName");
+    const brandDescription = formString(form, "brandDescription");
+    const preferredColor = formString(form, "preferredColor") || undefined;
+    const specifications = formString(form, "specifications");
+    const files = form.getAll("photos").filter((value): value is File => value instanceof File);
+    const validation = validateAnalysisInput({
+      brandName,
+      brandDescription,
+      specifications,
+      files: files.map((file) => ({ name: file.name, size: file.size, type: file.type })),
+    });
+    if (!validation.ok) throw new InputError(validation.message);
+
+    const imageContent = await Promise.all(files.map(async (file) => ({
+      type: "input_image",
+      image_url: "data:" + file.type + ";base64," + Buffer.from(await file.arrayBuffer()).toString("base64"),
+    })));
+
+    const prompt = [
+      "You are an evidence-first product researcher for a print-on-demand seller.",
+      "Analyze only the supplied vendor photos and pasted supplier specifications.",
+      "Never invent marketing claims, materials, dimensions, use cases, or visual details.",
+      "Every supported claim must cite an exact supplier-text quote or a specific vendor-image index.",
+      "Use supported only when the supplied evidence clearly proves the claim.",
+      "For tempting but unsupported claims, return needs_review with no evidence and explain exactly what is missing.",
+      "Use compact, listing-ready language and return no more than 24 facts.",
+      "",
+      "Supplier specifications:",
+      specifications,
+      "",
+      "Brand name: " + brandName,
+      "Brand description: " + brandDescription,
+    ].join("\n");
+
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const prompt = `You are an evidence-first product researcher for a print-on-demand seller. Analyze ONLY the pasted supplier facts and vendor photos. Do not create marketing claims, infer unprovided materials/dimensions, describe unseen details, or invent use cases. Every supported claim needs at least one exact evidence quote. If a tempting claim cannot be supported, return it as needs_review with a plain-language conflict. Use short, listing-ready claims.\n\nSupplier specifications:\n${specifications}\n\nBrand name: ${name}\nBrand description: ${description}`;
     const completion = await client.responses.create({
       model: "gpt-5.6-terra",
-      input: [{ role: "user", content: [{ type: "input_text", text: prompt }, ...imageContent] }],
-      text: { format: { type: "json_schema", name: "supplier_evidence", strict: true, schema: jsonSchema } },
+      input: [{
+        role: "user",
+        content: [{ type: "input_text", text: prompt }, ...imageContent],
+      }],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "supplier_evidence",
+          strict: true,
+          schema: jsonSchema,
+        },
+      },
     } as never);
+
     const parsed = responseSchema.parse(JSON.parse((completion as unknown as { output_text: string }).output_text));
-    const brandKit = proposeBrandKit({ name, description, preferredColor });
-    return NextResponse.json({ brandKit, ...parsed, slides: buildStoryboard(parsed.facts, Math.max(1, files.length)) });
+    const evidenceError = evidenceValidationMessage(parsed.facts, files.length);
+    if (evidenceError) throw new InputError(evidenceError);
+    const brandKit = proposeBrandKit({
+      name: brandName,
+      description: brandDescription,
+      preferredColor,
+    });
+
+    return NextResponse.json({
+      brandKit,
+      ...parsed,
+      slides: buildStoryboard(parsed.facts, files.length),
+    });
   } catch (error) {
-    console.error("Analysis failed", error);
-    return NextResponse.json({ error: "Analysis could not be completed. Check the supplier input and API key, then try again." }, { status: 500 });
+    if (error instanceof InputError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof z.ZodError || error instanceof SyntaxError) {
+      return NextResponse.json(
+        { error: "The analysis did not return valid source-cited facts. Please retry with clearer supplier information." },
+        { status: 502 },
+      );
+    }
+    console.error("Supplier analysis failed.", error);
+    return NextResponse.json(
+      { error: "Analysis could not be completed. Check your supplier input and try again." },
+      { status: 500 },
+    );
   }
 }

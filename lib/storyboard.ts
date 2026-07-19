@@ -4,6 +4,7 @@ const categoryLabel: Record<Fact["category"], string> = { material: "Made with i
 
 export function buildStoryboard(facts: Fact[], photoCount: number): Slide[] {
   const supported = facts.filter((fact) => fact.status === "supported");
+  if (!supported.length) return [];
   const byCategory = new Map<Fact["category"], Fact[]>();
   for (const fact of supported) byCategory.set(fact.category, [...(byCategory.get(fact.category) ?? []), fact]);
   const groups = [...byCategory.entries()].sort((a, b) => Number(b[1].some((f) => f.importance === "major")) - Number(a[1].some((f) => f.importance === "major")));
