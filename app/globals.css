@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root { --ink: #17211d; --mist: #f6f7f2; --line: #dce2d8; --sage: #50735d; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--mist); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+.shell { max-width: 1480px; margin: auto; padding: 28px 22px 56px; }
+.panel { background: white; border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 8px 30px rgba(40,59,47,.05); }
+.input { width: 100%; border: 1px solid #cbd5cb; border-radius: 10px; padding: 10px 12px; background: white; color: var(--ink); }
+.label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #66736a; }
+.button { border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 700; background: #1d3a2b; color: white; }
+.button--soft { background: #e9efe8; color: #234233; }
+.button:disabled { cursor: not-allowed; opacity: .45; }
+.tab { border: 1px solid var(--line); background: white; padding: 8px 11px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+.tab--active { background: #1d3a2b; color: white; border-color: #1d3a2b; }
+.canvas-wrap canvas { width: 100% !important; height: auto !important; display: block; }

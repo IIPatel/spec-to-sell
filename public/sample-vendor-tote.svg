@@ -1,0 +1,9 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1000" height="1000" fill="#E9DED2"/>
+  <path d="M296 311C296 236 344 177 421 177H579C656 177 704 236 704 311V441H296V311Z" stroke="#24201C" stroke-width="28"/>
+  <path d="M188 384H812L744 805C737 855 694 892 644 892H356C306 892 263 855 256 805L188 384Z" fill="#F7F0E6" stroke="#24201C" stroke-width="18"/>
+  <path d="M278 442H722" stroke="#DED0BF" stroke-width="8"/>
+  <circle cx="500" cy="635" r="112" fill="#A34E38"/>
+  <path d="M454 681L500 581L546 681" stroke="#F7F0E6" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="500" y="752" text-anchor="middle" fill="#24201C" font-family="Georgia, serif" font-size="30" letter-spacing="5">VENDOR SAMPLE</text>
+</svg>
