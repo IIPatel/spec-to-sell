@@ -79,7 +79,9 @@ export async function POST(request: Request) {
       image: sourceImages,
       prompt: buildGroundedVisualPrompt({ brandName, brandDescription, preferredColor, slide, facts }),
       size: "1024x1024",
-      quality: "high",
+      // Medium keeps the synchronous seller workflow comfortably inside Vercel's request window.
+      // The export still applies crisp, deterministic product claims and brand typography on top.
+      quality: "medium",
       background: "opaque",
       output_format: "webp",
       output_compression: 88,
