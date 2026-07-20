@@ -20,9 +20,9 @@ const factSchema = z.object({
   evidence: z.array(z.object({
     sourceType: z.enum(["supplier_text", "vendor_image"]),
     quote: z.string().min(1),
-    imageIndex: z.number().int().nonnegative().optional(),
+    imageIndex: z.number().int().nonnegative().nullable().transform((value) => value ?? undefined),
   })),
-  conflict: z.string().optional(),
+  conflict: z.string().nullable().transform((value) => value ?? undefined),
 }).superRefine((fact, context) => {
   if (fact.status === "supported" && !fact.evidence.length) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "Supported claims require evidence." });
@@ -47,7 +47,7 @@ const jsonSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["id", "claim", "category", "importance", "status", "confidence", "evidence"],
+        required: ["id", "claim", "category", "importance", "status", "confidence", "evidence", "conflict"],
         properties: {
           id: { type: "string" },
           claim: { type: "string" },
@@ -60,15 +60,15 @@ const jsonSchema = {
             items: {
               type: "object",
               additionalProperties: false,
-              required: ["sourceType", "quote"],
+              required: ["sourceType", "quote", "imageIndex"],
               properties: {
                 sourceType: { type: "string", enum: ["supplier_text", "vendor_image"] },
                 quote: { type: "string" },
-                imageIndex: { type: "number" },
+                imageIndex: { type: ["number", "null"] },
               },
             },
           },
-          conflict: { type: "string" },
+          conflict: { type: ["string", "null"] },
         },
       },
     },
