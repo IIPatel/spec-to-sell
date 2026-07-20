@@ -255,7 +255,9 @@ export default function Home() {
       form.set("facts", JSON.stringify(activeFacts.map((fact) => ({ claim: fact.claim, status: fact.status, evidence: fact.evidence }))));
       files.forEach((file) => form.append("photos", file));
       const response = await fetch("/api/generate-visual", { method: "POST", body: form });
-      const result = await response.json() as { visual?: string; model?: "gpt-image-2"; sourcePhotoCount?: number; error?: string };
+      const result = response.headers.get("content-type")?.includes("application/json")
+        ? await response.json() as { visual?: string; model?: "gpt-image-2"; sourcePhotoCount?: number; error?: string }
+        : { error: response.status === 504 ? "Image rendering took too long. Please try again." : "The AI visual service returned an unexpected response. Please try again." };
       if (!response.ok || !result.visual || !result.model || !result.sourcePhotoCount) throw new Error(result.error ?? "The AI visual could not be created.");
       setGeneratedVisuals((current) => ({
         ...current,

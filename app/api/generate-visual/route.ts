@@ -5,7 +5,9 @@ import { z } from "zod";
 import { buildGroundedVisualPrompt, validateVisualGenerationInput } from "@/lib/visual-generation";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+// GPT Image 2 high-quality reference edits can take longer than a standard API route.
+// This project has Fluid Compute enabled, so Vercel permits this bounded two-minute window.
+export const maxDuration = 120;
 
 class InputError extends Error {}
 
