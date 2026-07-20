@@ -78,7 +78,6 @@ export async function POST(request: Request) {
       prompt: buildGroundedVisualPrompt({ brandName, brandDescription, preferredColor, slide, facts }),
       size: "1024x1024",
       quality: "high",
-      input_fidelity: "high",
       background: "opaque",
       output_format: "webp",
       output_compression: 88,
